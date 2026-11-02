@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.data/
+.env*
+!.env.example
+*.tsbuildinfo
+next-env.d.ts
+workers/api/.dev.vars
+workers/api/.wrangler/
+workers/api/.build/

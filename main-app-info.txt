@@ -1,0 +1,329 @@
+WEBSITE PRODUCTS - BUSINESS PLATFORM PLAN
+Reviewed: 29 October 2026
+Status: Initial implementation added on 29 October 2026. The original proposal
+below is retained as design context; docs/SETUP.md is the current operating guide.
+This work does not verify current production accounts, uptime or payments.
+
+IMPLEMENTED
+- Current navigation: Overview, Clients, Websites, Payments, Communications,
+  Tasks and Settings. Marketing/Calls/Orders are hidden; old records stay backed up.
+- Business defaults: North Macedonia, USD, Europe/Skopje. Each client's maintenance
+  agreement has its own price; existing agreed currencies are never converted.
+- Communications: potential-client people, conversation stages, manual sent/reply
+  logs, last-email date, follow-up dates and retained history after client creation.
+- Current setup guide: WEBSITE-PRODUCTS-SETUP-v2.pdf (the earlier PDF is retained).
+- admin/: Next.js business dashboard with persistent local SQLite and cloud D1 API.
+- Clients/contacts, websites, services, Stripe invoice/payment tracking, monitoring,
+  incident history, tasks, order pipeline, call notes and manual campaign records.
+- Production owner verification through Cloudflare Access; loopback-only local dev.
+- Signed Stripe webhooks, paginated history, reconciliation, separate test/live data.
+- Export, backup/restore and fresh local-to-cloud migration tools.
+- Sanitized file-content site starter and safe new-site CLI with optional registry.
+- Breeze read-only monitoring endpoint, disabled until its separate token is set.
+- Root setup PDF and docs/SETUP.md contain your account/key/deployment steps.
+
+CONFIGURATION STILL NEEDED FROM YOU
+Add Stripe keys/customer mappings, provision the agency D1/Worker, configure
+Cloudflare Access and Vercel for hosting, and deploy/enable the Breeze monitor.
+No live services were deployed or charged. Review the dashboard yourself as agreed.
+The new starter intentionally has file content; a visual CMS is a separate
+per-client capability. External calls, calendars, email and ads are not automated.
+
+ORIGINAL DESIGN PROPOSAL
+
+1. BUSINESS SCOPE
+
+This root is the workspace for a website and maintenance business. Breeze is the
+first client website. A separate admin app will manage clients, websites, payment
+records, operational health and follow-up work across the business.
+
+Confirmed billing scope: track whether clients have paid this business for its
+maintenance and other services. Show amounts, dates, history and overdue payments.
+The initial admin reads/synchronizes agency Stripe records. Creating charges,
+subscriptions, refunds or cancellations is outside the first version.
+Payments made by a client's customers to that client's business are separate.
+
+Future scope, recorded but deferred: agency marketing, incoming client inquiries,
+quotes/orders, call notes, call scheduling and follow-up reminders.
+
+2. WHAT ALREADY EXISTS
+
+- The root contains breeze-web/ and this planning file; it is not a Git repository.
+  Breeze has its own Git repository, currently on main.
+- Breeze uses Next.js 16, React, TypeScript and vanilla CSS. Routes, page
+  composition, reusable components, styles and assets have clear project folders.
+- /admin redirects to the active protected /admin-test visual content editor.
+  The former filesystem-write/upload APIs are retired with HTTP 410.
+- Cloudflare Worker + D1 + R2 provide a working per-site CMS. Features include
+  drafts, immutable published revisions, image uploads, preview and publishing.
+- Publication includes cache invalidation and checking that the new revision
+  appears on the public pages. Failed delivery is recorded and can be retried.
+- Live and test configurations have separate Workers, databases, buckets and
+  credentials. Preserve this separation.
+- Source content files provide defaults/seeds. Live edited content is in D1;
+  uploaded media is in R2. Keeping a site folder does not back up its live content.
+- Breeze's existing Global settings mean Breeze's public business details and
+  shared page content. They are separate from the agency's global settings.
+- Service requests go to Housecall Pro. Careers opens a prefilled email in the
+  visitor's mail app. Neither provides the agency with its own sales/order inbox.
+- There are CMS readiness checks, but no scheduled uptime monitor or status
+  history. Stripe mentions in the booking integration are not agency billing.
+- No agency clients, contacts, service agreements, invoices or payments database
+  was found in the reviewed application.
+
+3. RECOMMENDED STRUCTURE
+
+Keep Breeze in its current folder. Add an independently deployed admin beside it:
+
+website-products/
+  main-app-info.txt           This plan
+  admin/                      Agency dashboard and backend source
+    src/                      Admin pages, components, styles and server code
+    workers/api/              Proposed agency Worker, D1 migrations, scheduled jobs
+  breeze-web/                 Existing website and its own CMS
+  next-client-web/            Future independent client project
+  docs/                       Onboarding, operations and service procedures
+  scripts/                    Root development/onboarding helpers, when needed
+  templates/                  Sanitized starter after the second-site exercise
+
+The structure above was the initial proposal; see IMPLEMENTED for the current state.
+
+The root organizes the business; admin/ provides its global interface. Each site
+keeps its own CSS, components, assets, content definitions and integrations.
+Each site also keeps its own deployment and CMS storage initially.
+
+A deployed admin cannot discover websites by reading this local Windows folder.
+Register sites in the agency database. Store a project path/repository link as
+metadata and connect to deployed sites/providers through authenticated APIs.
+Client sites must not depend on the agency admin being available to render pages.
+
+Repository strategy: retain Breeze's existing repository and deploy connection
+while introducing the admin. Separate repositories can live in the same workspace.
+Do not initialize a parent repo and accidentally absorb the nested Breeze repo.
+A deliberate monorepo conversion can follow if shared packages justify it;
+preserve Git history, review deployment roots and build only affected apps.
+Global management does not require a monorepo or a single public deployment.
+
+4. FIRST ADMIN VERSION
+
+Build for the business owner first, with individual authenticated identity and
+MFA or passkey support through a maintained authentication solution. Breeze's
+current shared CMS credentials are not a suitable global account model.
+
+Five useful areas:
+
+- Overview: unpaid/overdue service invoices, sites needing attention and next tasks.
+- Clients: business name, multiple contact people, billing contact, email, phone,
+  notes and agreed service scope. One client can own multiple websites.
+- Websites: client owner, URL, lifecycle status, hosting/domain ownership,
+  renewal dates and links to the website, content editor and provider dashboards.
+- Payments: service, expected amount, currency, billing period/due date, amount
+  received, payment date, invoice link and payment/refund status from Stripe.
+- Tasks/activity: short notes, due dates, next actions and a record of admin edits.
+
+Example website row (illustrative fields; no real health/payment claim):
+Client | Website | Service | Invoice status | Public health | CMS health | Next task
+Breeze | Breeze  | Maintenance | Not connected | Not checked | Not checked | Set up tracking
+
+Initially, Open content editor opens Breeze's existing protected CMS. There is
+no need to recreate its editor inside the agency admin or share browser cookies.
+Any future unified sign-in or central editing requires an explicit auth design.
+
+Keep financial payment state, website lifecycle and website health independent.
+A failed payment should create an action for the owner; it must not automatically
+disable a client's public website in this version.
+
+5. PAYMENT RECORDS - MINIMUM STRIPE INTEGRATION
+
+Stripe remains the authority for Stripe invoices, payments and subscriptions.
+The admin keeps a synchronized record linked to the correct agency client and
+service agreement. It is a tracker, not a custom payment processor.
+
+- Link an existing Stripe customer to an agency client using its stable customer
+  ID. Do not use matching email addresses alone as the identity model.
+- Import relevant existing invoice/payment history on connection. Listening only
+  to new webhooks would omit payments made before the admin existed.
+- Track invoice status and money received separately. A subscription marked
+  active, a successful Checkout redirect, or an invoice marked paid alone is
+  insufficient to explain actual cash received, refunds or account credits.
+- Support the Stripe methods actually used: invoices/subscriptions and, if used,
+  one-time service payments. Show the related transaction and refund information.
+- Associate records with a service agreement and explicit website scope; one
+  client may pay for several websites or additional services.
+- Show due amount, received amount, currency, due/paid dates, service period,
+  source link and last successful synchronization. Store money in integer minor
+  units; do not combine amounts in different currencies into an unlabeled total.
+- Use signed webhooks for changes, verify the raw request signature, record event
+  IDs and handle retries/duplicates safely. Events may arrive out of order; use
+  the current Stripe object to reconcile state rather than trusting arrival order.
+- Add a scheduled reconciliation and a controlled refresh for missed updates.
+  Keep test-mode records separate from live-mode records.
+- Store Stripe secrets on the server, with restricted access where supported.
+  Browser code and checked-in site definitions receive no secret keys/card data.
+- Configure charges and service subscriptions in Stripe's own dashboard initially.
+  A Stripe-hosted customer portal can be added later if clients need self-service.
+
+An overdue view needs a due date and expected charge: use existing Stripe invoices
+or an agreed billing schedule. An empty payments list alone cannot prove a client
+owes money. If services are paid outside Stripe, explicitly labelled manual
+records can be added later; do not pretend they were verified through Stripe.
+
+6. WEBSITE HEALTH
+
+Start with scheduled read-only checks of registered public URLs, for example
+every five minutes. Store timestamps, response time, expected content checks and
+incident history. Distinguish healthy, degraded, down, stale and not configured.
+Require repeated failures before alerting; record recovery as well as failure.
+
+Separate signals:
+- Public website: can visitors load expected content over HTTPS?
+- CMS: can the content service reach its database/media and required schema?
+- Publishing: are committed revisions still waiting for public delivery?
+- Operations: last deployment, domain renewal and last verified backup/restore.
+
+Phase the signals in; do not label unavailable integrations as healthy. An HTTP
+200 could be an error page, and a cached public page can survive a CMS outage.
+Public availability and backend readiness need separate checks.
+
+Breeze's existing health routes use the same token as content writes. Introduce
+a separate read-only monitoring credential and a small versioned status response
+before connecting them to an unattended central monitor. Keep tokens server-side,
+scope them per site/environment and restrict monitor destinations to registered
+public hosts. Never expose drafts, credentials or private contact details there.
+
+Minimum future site status: site ID, environment, status schema version, CMS
+readiness, pending publication count/age and last successful delivery timestamp.
+The central monitor records its own checked_at timestamp and error category.
+Do not perform content writes or submit real customer leads as routine probes.
+
+7. DATA AND TECHNOLOGY BOUNDARIES
+
+A practical starting stack is another Next.js admin on Vercel, with a separate
+agency Cloudflare Worker and D1 database for records, Stripe synchronization and
+scheduled checks. This follows the existing project's operational pattern.
+Keep admin authentication, API authorization and secrets explicit across these
+services. The agency database must not share Breeze's CMS tables or credentials.
+
+Initial entities:
+- clients, contacts
+- sites (client_id; one client to many sites)
+- service_agreements and agreement_sites (services can cover one or more sites)
+- stripe_customer_links, invoices, payments/refunds, processed_webhook_events
+- health_checks, incidents
+- tasks, activity/audit entries
+
+Private contacts, commercial notes and billing records belong in the agency
+database, not source JSON. Store configuration defaults in code and operational
+settings in the database; put actual secrets in the deployment secret store.
+The proposed model can later attach orders/calls/campaigns to existing client IDs.
+
+8. MAKING THE SECOND WEBSITE EASY
+
+Use the second website to prove the onboarding process before automating it.
+Create a sanitized starter; do not blindly copy Breeze's entire working folder.
+
+Checklist:
+1. Create/link the client and service agreement in the admin.
+2. Create a new project with a unique stable site ID and package name.
+3. Keep CSS, branding, page content, images and integrations inside that project.
+4. Supply validated per-site configuration: origins, preview/live hosts, Vercel
+   project identity, branch policy, Worker origins and supported capabilities.
+5. Provision independent test/live deployment settings, secrets and CMS storage.
+6. Apply migrations to the correct new databases and seed that client's content.
+7. Configure local app/Worker ports so concurrent sites do not use the same service.
+8. Register deployed URLs, editor link, provider references and billing mapping.
+9. Run build/CMS checks and verify publication, media, health and form delivery.
+10. Record launch ownership, renewals, backup/restore and support responsibilities.
+
+A future site.config.json can hold non-secret project ID, paths, commands and
+capabilities. Keep private contacts and payment records out of it. Registration
+must reconcile stable IDs so onboarding reruns do not create duplicate websites.
+
+Never copy .git, .env.local, .dev.vars, .vercel links, .wrangler databases, build
+output, node_modules, private exports or Breeze customer content into a starter.
+Convert reusable security checks into validated per-site allowlists; do not simply
+remove origin/project checks to make a copied website run.
+
+Extract shared CMS contracts/helpers only after the second site shows what is
+truly common. Keep shared code versioned so an update does not force every client
+to change at once. Avoid building a universal visual page builder now.
+
+9. BREEZE ITEMS TO ADDRESS BEFORE USING IT AS A TEMPLATE
+
+- Hardcoded origins: cms/shared/contract.ts:24.
+- Live/preview branch and origin restrictions: src/lib/cms/scope.ts:5.
+- Fixed deployment identity: src/lib/cms/delivery.ts:18.
+- Breeze-specific cache/session names and branding/integration IDs.
+- CMS tables have no site_id: workers/cms/migrations/0001_cms_workflow.sql:3.
+  Keep per-site databases initially; putting all clients into these tables fails.
+- Shared-account CMS auth: src/lib/cms/access.ts:6. Preserve isolation while
+  designing separate individual owner/staff authentication for the agency admin.
+- Health authorization/readiness: workers/cms/src/index.ts:33 and :194;
+  workers/cms/src/media.ts:90. Monitoring needs a read-only interface.
+- Publishing workflow: src/featured/admin-test/api.ts:38 and
+  src/lib/cms/delivery.ts:52. A future central publish action must use the site's
+  full Next workflow; calling Worker publish alone skips delivery confirmation.
+- Both Wrangler configurations have empty cron lists. Retry is currently manual;
+  unattended recovery is future work, distinct from displaying a pending status.
+- Version-history UI and restore-as-draft are already recorded in Breeze's
+  To.do.md. Preserve that roadmap; immutable revisions do not yet imply this UI.
+- docs/INTEGRATIONS.md records Housecall Pro receipt and Clarity ingestion as
+  unverified from the workspace. Confirm them during launch/operations review.
+- Code rollback does not restore D1/R2 content. Keep database/media backups and
+  record actual restore verification. Do not infer current backup health from
+  the historical release evidence in the project docs.
+
+10. IMPLEMENTATION ORDER AND DEFINITION OF DONE
+
+A. Owner admin, clients and website registry.
+   Done when Breeze has a real client/site record, contact information, service
+   scope, useful links and follow-up tasks behind authenticated access.
+B. Payment tracking.
+   Done when existing Stripe history is imported, new payments/refunds/status
+   changes synchronize, overdue logic uses actual due dates, and stale sync is
+   visible. Repeated/out-of-order events must not duplicate financial records.
+C. Public website monitoring and read-only Breeze CMS diagnostics.
+   Done when checks persist, repeated outages create an incident, recovery closes
+   it and stale results cannot be displayed as current healthy status.
+D. Second-client starter and onboarding checklist.
+   Done when a second site can be configured without Breeze identities/data and
+   can deploy, edit/publish and be monitored independently.
+
+Historical review note: the initial assessment only wrote this plan. The later
+implementation and verification are recorded in docs/VERIFICATION.md.
+
+11. BUSINESS MODEL AND DEFERRED WORK
+
+Suggested initial offer: a defined website build fee plus a recurring maintenance
+service. Write down included updates, support response expectations, hosting,
+backups and who owns/renews the domain. Quote larger work separately. Track
+hosting/storage costs and maintenance time per client to assess service margins.
+Agree ownership and handover/export procedures early so moving a client later
+does not require untangling another client's content or credentials.
+
+Deferred backlog:
+- Agency sales inquiries and simple pipeline: new, contacted, quoted, won/lost.
+- Quotes/orders linked to clients, services, websites and billing records.
+- Call notes, next action and reminders first; scheduling integrations later.
+- Marketing campaigns, lead source attribution and performance reporting.
+- Client self-service billing portal, staff roles and carefully scoped access.
+- Automated provisioning, shared CMS packages and publishing recovery workers.
+
+12. REVIEW SOURCES
+
+Local: breeze-web/AGENTS.md; README.md; codex.md; docs/WEBSITE.md;
+docs/INTEGRATIONS.md; docs/CMS-CLIENT-LAUNCH.md;
+output/handover/vercel-launch-guide.md; package/config files; CMS schemas;
+auth, publication, delivery and media implementations; test source; To.do.md.
+
+Official documentation consulted on 29 October 2026:
+- Stripe subscription events: https://docs.stripe.com/billing/subscriptions/webhooks
+- Stripe invoice/payment status: https://docs.stripe.com/invoicing/overview
+- Stripe webhook verification, retries, duplicate/order handling:
+  https://docs.stripe.com/webhooks
+- Optional hosted customer portal: https://docs.stripe.com/customer-management
+- Vercel independent projects within a monorepo:
+  https://vercel.com/docs/monorepos
+
+Architecture and implementation order above are recommendations based on the
+local project. Provider documentation does not verify this user's live accounts.

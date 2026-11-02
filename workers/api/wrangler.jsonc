@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "website-products-api",
+  "main": "src/index.mjs",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "vars": {
+    "STRIPE_MODE": "test",
+    "MONITOR_ALLOWED_HOSTS": "breeze-full.vercel.app,www.breezehc.com,breeze-live-api.nikodola.workers.dev"
+  },
+  "d1_databases": [{
+    "binding": "DB", "database_name": "website-products-admin",
+    "database_id": "REPLACE_WITH_YOUR_NEW_AGENCY_DATABASE_ID",
+    "migrations_dir": "migrations"
+  }],
+  "triggers": { "crons": ["*/5 * * * *", "17 * * * *"] }
+}

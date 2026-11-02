@@ -1,0 +1,11 @@
+/* Public-document defaults; dashboard styles live in src/admin/admin.css. */
+html { background: #f8f8f3; }
+body { margin: 0; }
+button { border: 0; }
+button:disabled { cursor: wait; opacity: .55; }
+button svg { pointer-events: none; }
+input, select, textarea { min-width: 0; }
+.website-error { max-width: 600px; margin: 15vh auto; padding: 28px; color: #203e35; font: 16px/1.7 Arial, sans-serif; }
+.website-error h1 { font-size: 28px; }
+.website-error button { padding: 12px 20px; border-radius: 5px; background: #244b3b; color: #fff; font: inherit; cursor: pointer; }
+.website-error button:focus-visible { outline: 3px solid #967244; outline-offset: 5px; }

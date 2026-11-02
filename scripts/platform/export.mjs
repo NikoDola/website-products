@@ -1,0 +1,10 @@
+import { localDatabase } from "../../src/admin/server/local.mjs";
+import { exportTables } from "../../src/shared/router.mjs";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+const db = await localDatabase(), tables = {};
+for (const table of exportTables) tables[table] = await db.all(`SELECT * FROM ${table}`);
+mkdirSync(resolve("backups"), { recursive: true });
+const file = resolve("backups", `platform-export-${Date.now()}.json`);
+writeFileSync(file, JSON.stringify({ schemaVersion: 1, exportedAt: new Date().toISOString(), tables }, null, 2));
+console.log(`Export saved: ${file}`);

@@ -1,0 +1,21 @@
+{
+  "name": "website-products-legacy-commands",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix .. run dev --",
+    "build": "npm --prefix .. run build --",
+    "start": "npm --prefix .. run start --",
+    "typecheck": "npm --prefix .. run typecheck --",
+    "test": "npm --prefix .. run test --",
+    "test:cloud": "npm --prefix .. run test:cloud --",
+    "check": "npm --prefix .. run check --",
+    "monitor": "npm --prefix .. run monitor --",
+    "sync": "npm --prefix .. run sync --",
+    "backup": "npm --prefix .. run backup --",
+    "home:inbox": "npm --prefix .. run home:inbox --",
+    "test:home": "npm --prefix .. run test:home --",
+    "db:export": "npm --prefix .. run db:export --",
+    "db:push": "npm --prefix .. run db:push --",
+    "db:import": "npm --prefix .. run db:import --"
+  }
+}

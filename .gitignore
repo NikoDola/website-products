@@ -1,0 +1,18 @@
+# Client website has its own repository and deployment.
+/breeze-web/
+
+**/node_modules/
+**/.next/
+**/.wrangler/
+**/.build/
+**/.env*
+!**/.env.example
+**/.dev.vars
+**/.data/
+**/*.tsbuildinfo
+next-env.d.ts
+tmp/
+backups/
+
+# Private source archives for the marketing contact import.
+/Business*Prospects*.pdf

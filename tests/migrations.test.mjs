@@ -1,0 +1,30 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { DatabaseSync } from "node:sqlite";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { database } from "./helpers.mjs";
+import { migrateLocal } from "../src/admin/server/migrations.mjs";
+import { saveRecord, snapshot } from "../src/shared/platform.mjs";
+test("existing local databases upgrade once while preserving business data and agreed prices",()=>{
+  const raw=new DatabaseSync(":memory:");
+  raw.exec(readFileSync(new URL("../workers/api/migrations/0001_platform.sql",import.meta.url),"utf8"));
+  raw.exec("INSERT INTO settings(id,name,email,currency,updated_at) VALUES('business','Existing Agency','owner@example.com','eur','2026-01-01'); INSERT INTO clients(id,name,created_at,updated_at) VALUES('old-client','Existing Client','2026-01-01','2026-01-01'); INSERT INTO agreements(id,client_id,title,amount,currency,created_at,updated_at) VALUES('old-service','old-client','Maintenance',12000,'eur','2026-01-01','2026-01-01');");
+  const directory=fileURLToPath(new URL("../workers/api/migrations",import.meta.url));
+  migrateLocal(raw,directory);
+  const settings=raw.prepare("SELECT * FROM settings").get();
+  assert.equal(settings.name,"Existing Agency");assert.equal(settings.email,"owner@example.com");assert.equal(settings.currency,"usd");assert.equal(settings.country,"North Macedonia");assert.equal(settings.timezone,"Europe/Skopje");
+  const service=raw.prepare("SELECT * FROM agreements").get();assert.equal(service.amount,12000);assert.equal(service.currency,"eur");
+  raw.exec("UPDATE settings SET currency='gbp'");migrateLocal(raw,directory);
+  assert.equal(raw.prepare("SELECT currency FROM settings").get().currency,"gbp");
+  assert.equal(raw.prepare("SELECT COUNT(*) AS n FROM platform_migrations").get().n,4);raw.close();
+});
+test("new business defaults to USD and maintenance prices remain individual for each client",async()=>{
+  const db=await database();
+  const settings=(await snapshot(db,{})).settings[0];assert.equal(settings.currency,"usd");assert.equal(settings.timezone,"Europe/Skopje");
+  const client=await saveRecord(db,"clients",{name:"Second Client"},"owner");
+  await saveRecord(db,"agreements",{client_id:"breeze-client",title:"Maintenance",amount:10000},"owner");
+  await saveRecord(db,"agreements",{client_id:client.id,title:"Maintenance",amount:17500},"owner");
+  const services=await db.all("SELECT client_id,amount,currency FROM agreements ORDER BY amount");
+  assert.deepEqual(services.map(row=>row.amount),[10000,17500]);assert.ok(services.every(row=>row.currency==="usd"));db.raw.close();
+});

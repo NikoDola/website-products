@@ -1,0 +1,43 @@
+{
+  "name": "website-products",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.16 <23"
+  },
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1 --port 3001",
+    "build": "next build --webpack",
+    "start": "next start --hostname 127.0.0.1 --port 3001",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs",
+    "test:cloud": "node --test tests/d1.integration.mjs",
+    "check": "npm run typecheck && npm test && npm run build",
+    "monitor": "node --env-file-if-exists=.env.local scripts/platform/jobs.mjs monitor",
+    "sync": "node --env-file-if-exists=.env.local scripts/platform/jobs.mjs stripe",
+    "backup": "node --env-file-if-exists=.env.local scripts/platform/backup.mjs",
+    "home:inbox": "node --env-file-if-exists=.env.local scripts/platform/home-inbox.mjs",
+    "test:home": "node --test tests/home.test.mjs",
+    "db:export": "node --env-file-if-exists=.env.local scripts/platform/export.mjs",
+    "db:push": "node --env-file-if-exists=.env.local scripts/platform/push.mjs",
+    "db:import": "node scripts/platform/import.mjs",
+    "dev:breeze": "npm --prefix breeze-web run dev",
+    "dev:home": "npm run dev",
+    "build:home": "npm run build",
+    "site:new": "node scripts/new-site.mjs"
+  },
+  "dependencies": {
+    "next": "16.3.8",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "jose": "6.2.9",
+    "lucide-react": "1.31.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/node": "22.19.0",
+    "@types/react": "19.0.12",
+    "@types/react-dom": "19.0.4"
+  }
+}

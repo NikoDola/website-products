@@ -1,0 +1,5 @@
+{
+  "id": "new-client", "name": "New Client", "description": "A new client website.",
+  "url": "https://example.com", "email": "", "phone": "",
+  "headline": "A new beginning.", "intro": "Replace this copy with your client's approved content."
+}
