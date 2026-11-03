@@ -17,6 +17,8 @@
     "monitor": "node --env-file-if-exists=.env.local scripts/platform/jobs.mjs monitor",
     "sync": "node --env-file-if-exists=.env.local scripts/platform/jobs.mjs stripe",
     "backup": "node --env-file-if-exists=.env.local scripts/platform/backup.mjs",
+    "outreach:backup": "node --env-file-if-exists=.env.local scripts/platform/outreach-backup.mjs",
+    "locations:import": "python scripts/import-texas-locations.py",
     "home:inbox": "node --env-file-if-exists=.env.local scripts/platform/home-inbox.mjs",
     "test:home": "node --test tests/home.test.mjs",
     "db:export": "node --env-file-if-exists=.env.local scripts/platform/export.mjs",

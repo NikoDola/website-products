@@ -51,7 +51,56 @@ Current navigation: Overview, Clients, Websites, Payments, Communications,
 Marketing, Tasks, Settings. Marketing was restored on 31 October as a separate
 JSON-backed historical prospect directory. Calls and Orders remain retired.
 The old marketing/call/order database tables remain in backups/exports and are
-not used by the new Marketing section.
+not used by the new Marketing section. Marketing now has Current Clients at
+`/admin/marketing/current-clients` and New Clients at
+`/admin/marketing/new-clients`. `/admin/marketing/` and the legacy
+`/admin?view=marketing` open Current Clients. That label denotes the existing
+historical Marketing directory; it never converts records into actual clients.
+
+New Clients is an independent manual HVAC lead/outreach system. Its SQLite file
+is `admin/.data/outreach.sqlite`, separate from the historical Marketing JSON,
+Clients, Communications and Stripe. It starts empty. Gmail connections use the
+app's own OAuth web client (not the assistant's Gmail connector), owner-bound
+one-use OAuth state, an HttpOnly browser-binding cookie, PKCE and AES-256-GCM
+encrypted credentials. Sender accounts request gmail.send + gmail.readonly;
+receiver-only accounts request gmail.readonly. Configure GMAIL_CLIENT_ID,
+GMAIL_CLIENT_SECRET, GMAIL_REDIRECT_URI and a stable 64-hex-character
+OUTREACH_ENCRYPTION_KEY before connecting. Never expose tokens to the browser.
+Hosted operation requires persistent absolute OUTREACH_DATA_PATH on Node;
+the existing D1 Worker does not persist outreach, and Vercel is rejected.
+OAuth starts must use the configured callback origin. A localhost/127.0.0.1
+mismatch returns to the configured address before creating state/cookies; the
+owner then clicks Connect again. Callback failures use fixed safe reason codes
+and owner-only audit entries, never raw provider errors, codes or tokens. The
+banner distinguishes browser/session failures, denied consent, missing scopes,
+disabled Gmail API and rejected credentials. Status query parameters are cleared
+after display so old errors do not return on a later refresh.
+
+Each outgoing email requires a manual review and Send this email action. Drafts
+show Email, Caption (the actual Subject) and Markdown Message as separate fields,
+in that order. A pasted bold recipient line followed by a bold caption can also
+be extracted into those fields; neither header becomes message text. Daily limits default to 10 per sender,
+reset in OUTREACH_TIMEZONE (Europe/Skopje). Transactional quota reservations,
+saved versions and content fingerprints prevent concurrent or repeated sends.
+Timeouts remain uncertain and are reconciled by Message-ID; never retry an
+uncertain Gmail send automatically. Spam/Inbox placement requires exact-message
+evidence in the explicitly connected, designated recipient test mailbox. Normal
+recipients always have unknown placement. Verified Spam pauses sending; auth
+errors require reconnecting; repeated confirmed bounces pause and bounced
+recipients are suppressed. All monitoring is manual. No AI or bulk sends exist.
+
+The Texas picker shows all 9,591 dataset locations in an alphabetical, scrollable
+native select with a search bar above it. The owner removed manual HVAC company
+entry; messages can be composed directly without saving a lead. Existing saved
+leads and optional discovery remain available. The picker uses the GeoNames dataset in
+`data/texas-locations.json`, with county crosswalk, source hashes and CC BY 4.0
+attribution. Refresh with `npm run locations:import`. Location search makes no
+external calls. Optional OUTREACH_DISCOVERY_ENABLED=true enables button-triggered,
+cached, rate-limited OpenStreetMap/Overpass HVAC discovery within 20 km, with ODbL
+attribution. Confirm service area/contact details manually; no contacts are
+invented or scraped. No paid API is enabled. See `docs/OUTREACH.md` for credentials,
+scope review, costs, limitations and setup. `npm run outreach:backup` makes a
+separate consistent private backup; preserve the encryption key separately.
 
 Marketing imports 179 source lead records from the two root Business Prospects
 2013-2026 PDFs and retains all 19 contest-history entries, including a platform
@@ -66,7 +115,7 @@ are separate classifications; none changes financial totals. Keep original
 amount/currency wording in notes. Do not infer payments from delivered files.
 Search, priority/year/contact-date/payment/stage/email/follow-up filters, sorting,
 pagination, CSV export and an independent JSON backup are available. Campaign
-stages/contact dates/follow-ups are updated manually; this section sends no email.
+stages/contact dates/follow-ups are updated manually; Current Clients sends no email.
 Marketing Details expands directly below the selected contact row and toggles
 closed on a second click. Do not move details beneath the list or scroll to them.
 Show contact information directly, without a nested original-record/source-pages
@@ -116,6 +165,15 @@ dates appear in the dashboard; the app does not send reminder emails.
 | `src/admin/components/Dashboard.tsx` | Main navigation, clients, sites, payments, services, tasks and settings UI |
 | `src/admin/components/Communications.tsx` | People, conversation timeline, manual email logging and follow-ups |
 | `src/admin/components/Marketing.tsx` | Historical prospects, campaign filters, contact editor and contest archive |
+| `src/admin/components/MarketingHub.tsx` | Current Clients / New Clients navigation inside the existing dashboard |
+| `src/admin/components/NewClients.tsx` | Gmail cards, manual composer, history and suppression controls |
+| `src/admin/components/LeadDirectory.tsx` | Full searchable Texas select, optional discovery and saved leads |
+| `src/admin/server/outreach-store.mjs` | Independent outreach SQLite, encrypted tokens, versions, quotas, dedupe and audit |
+| `src/admin/server/outreach-gmail.mjs` | Gmail OAuth, single-message send and evidence-based refresh |
+| `src/admin/server/texas-locations.mjs` | Local GeoNames Texas location search |
+| `src/admin/server/outreach-discovery.mjs` | Opt-in, cached OpenStreetMap HVAC lookup |
+| `src/app/api/outreach/` | Owner-authenticated outreach, OAuth, geographic search and discovery endpoints |
+| `docs/OUTREACH.md` | New Clients setup, scopes, costs, workflow, evidence limits and backup |
 | `src/admin/components/Modal.tsx` | Shared accessible editor/details dialog |
 | `src/admin/components/ClientActions.tsx` | Three-dot client menu, rendered in a portal to avoid table clipping |
 | `src/admin/components/ClientDetails.tsx` | Client More info, billing dates and optional contact details |
@@ -294,7 +352,7 @@ whether an integration is connected. No Payoneer integration is implemented.
 - Two failed checks open an incident; recovery resolves it. Hosted monitoring
   runs every five minutes. Website availability never changes automatically
   because a client payment fails.
-- At this snapshot the root has no Git repository; `breeze-web/` has its own.
+- The root now has a Git repository; `breeze-web/` retains its independent one.
   Root `.gitignore` explicitly excludes `/breeze-web/`. Recheck repository state
   before Git operations and do not alter global Git configuration.
 - Read `breeze-web/AGENTS.md` and its referenced project docs before changing that

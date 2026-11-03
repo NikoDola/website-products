@@ -1,5 +1,93 @@
 # Implementation verification
 
+## 2 November 2026 - Gmail callback diagnostics and browser binding
+
+- Replaced the generic callback banner with fixed, safe failure categories and
+  audit reason codes. Distinguishes denied consent, browser/session problems,
+  token/client failures, insufficient permissions, disabled Gmail API and network
+  failures. Raw provider details, codes, cookies and tokens remain excluded.
+- OAuth start now returns to the configured callback origin before creating any
+  state/cookie when initiated on a different supported loopback hostname. The
+  owner clicks Connect again on that origin. Old status query parameters are
+  removed after the UI displays their result.
+- All 78 shared tests, TypeScript and the production build passed. New tests
+  verify origin correction without state creation, browser binding, disabled API,
+  rejected credentials/codes, scope denial and network failures, including that
+  sensitive provider content never appears in user-facing messages.
+- The earlier generic failure cannot be diagnosed retrospectively; no successful
+  Gmail connection was present at inspection. A fresh owner-driven consent flow
+  is needed to verify live authorization. No mail was sent or permission grant
+  made by the agent. At the owner's explicit request, the verified port-3001 dev
+  process was stopped and the port confirmed free so they can run npm run dev.
+
+## 2 November 2026 - local Gmail connection configuration
+
+- Owner supplied the OAuth client ID and secret in root `.env.local`. Added the
+  missing loopback callback URI and a new random encryption key after confirming
+  no account credentials were stored. Existing configuration bytes were retained;
+  no credential/key values were printed. Configuration validation passed.
+- The running port-3001 `/api/outreach` returned 200 and `gmail_configured: true`.
+  No accounts were connected yet. The owner can refresh New Clients and use
+  Connect sender / Connect test receiver to complete each Google consent flow.
+  No emails were sent and no existing business records were changed.
+
+## 2 November 2026 - full Texas selection and messaging parameters
+
+- Texas now uses an always-visible native selection list with search above it.
+  The authenticated browse endpoint returns every dataset location alphabetically
+  with county, without the existing autocomplete's 30-result cap. Search filters
+  locally; clearing it restores the entire list. Native scrolling/keyboard
+  selection replaces the previous autocomplete popup.
+- Removed manual HVAC company entry from the UI, preserved existing saved leads,
+  and added direct Compose email actions on discovered companies. The composer
+  shows Email, Caption and Markdown Message in order; Caption remains the actual
+  Subject header. Sender selection follows these fields and optional company
+  metadata starts collapsed. Pasted bold recipient/caption parameters are split
+  out of the message, with a guard against changing an existing recipient.
+- Added in-app Gmail setup help and updated the setup guide. The four required
+  Gmail/OAuth/encryption values remain missing; no existing environment values
+  were changed and no account was connected or message sent.
+- All 76 shared tests, TypeScript and the production build passed. New tests
+  verify uncapped, ordered, complete location browsing and recipient/caption/body
+  separation through MIME output. A read-only local API check returned all 9,591
+  locations with private/no-store and noindex headers. Historical Marketing's
+  SHA-256 remains unchanged. No dashboard was opened or visually inspected.
+
+## 2 November 2026 - Marketing sections and manual New Clients outreach
+
+- Added authenticated `/admin/marketing/`, `current-clients` and `new-clients`
+  pages in the existing dashboard. Legacy `?view=marketing` opens the historical
+  directory. Its component, storage/API, filters, exports and edit logic remain
+  unchanged. The actual current file contains 173 contacts and 19 contests;
+  SHA-256 matched before/after:
+  `A4EA304B0797AD29A82A61A2D04E664BB4A8A65629539A752F5F962E3A3EF301`.
+- New outreach uses independent SQLite storage, encrypted OAuth credentials,
+  manual draft/send/review UI, per-account quotas, send idempotency, uncertain
+  outcome reconciliation, evidence-based test mailbox placement, replies/DSNs,
+  account pausing and shared suppression. No client/payment conversion occurs.
+- Imported 9,591 GeoNames Texas populated places spanning all 254 counties.
+  Archive CRC, county crosswalk, unique IDs, coordinate ranges and representative
+  city/CDP/village/small-community searches passed. Dataset source hashes and
+  attribution are retained. Production file tracing includes the dataset.
+  Optional OpenStreetMap discovery is disabled and has mocked API coverage.
+- All 74 shared tests, TypeScript and the root production build passed.
+  New regressions cover navigation, encrypted storage/redaction, drafts without
+  accounts, OAuth state/identity/scopes, encryption-key recovery, concurrent
+  limits, dedupe, uncertain sends, test Spam proof, replies, DSNs, disconnects,
+  geographic search, safe public contact fields, cache/rate limits and opt-in.
+- Isolated HTTP tests on temporary port 3004 used dedicated `tmp/` databases and
+  loopback Host headers to exercise the existing local-access gate. Owner/host
+  rejection, mutation-origin/request-marker rejection, malformed JSON, no-store,
+  draft saves/version conflicts, lead dedupe, suppression, location search,
+  missing OAuth setup, disabled discovery and invalid callback rejection passed.
+  No dashboard was opened or visually inspected. Test records stayed in temporary
+  storage. No Gmail accounts were connected and no real emails were sent. The
+  temporary server was stopped, and normal `npm run dev` was started on port 3001.
+- Live OAuth/send/Spam tests still require the owner's Google Cloud OAuth client,
+  encryption key and account consent. Current implementation setup and limits are
+  in `docs/OUTREACH.md`. No paid API, AI agent, deployment, Stripe operation or
+  existing business-record mutation was performed.
+
 ## 2 November 2026 - restored local admin development mode
 
 - The port-3001 server had been restarted with `next start`. Production mode

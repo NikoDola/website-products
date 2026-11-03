@@ -134,6 +134,16 @@ mailbox or send reminders automatically. **Open email app** opens your own mail
 application. Conversation times display in Europe/Skopje; entry inputs use the
 computer/browser's local time.
 
+### Marketing: New Clients outreach
+
+Marketing now has Current Clients (the unchanged historical directory) and New
+Clients (manual HVAC lead discovery and Gmail outreach). Read
+[OUTREACH.md](OUTREACH.md) before configuring Gmail OAuth, receiver test accounts,
+the token-encryption key or optional free OpenStreetMap discovery. New Clients
+uses its own persistent `admin/.data/outreach.sqlite`; the existing Clients and
+Marketing records do not migrate. Use `npm run outreach:backup` separately from
+the platform/Current Clients backups. No AI agents or bulk campaigns run.
+
 ## 2. Configuration files
 
 Create your local configuration from the example:

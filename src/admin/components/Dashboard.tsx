@@ -4,7 +4,8 @@ import { LayoutDashboard, UsersRound, Globe2, Wallet, ListTodo, ClipboardList, M
 import { entities as rawEntities, currencyDigits } from "../../shared/entities.mjs";
 import { businessDate } from "../../shared/time.mjs";
 import Communications from "./Communications";
-import Marketing from "./Marketing";
+import MarketingHub from "./MarketingHub";
+import { adminSelection, adminUrl } from "../../shared/admin-navigation.mjs";
 import Modal from "./Modal";
 import ClientActions from "./ClientActions";
 import ClientDetails from "./ClientDetails";
@@ -45,8 +46,9 @@ function Table({ columns, rows, empty }: { columns: { title: string; cell: (row:
   if (!rows.length) return empty || <Empty title="Nothing here yet" text="Add your first record to get started." />;
   return <div className="table-scroll"><table><thead><tr>{columns.map(col => <th key={col.title} scope="col">{col.title}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.id}>{columns.map(col => <td key={col.title}>{col.cell(row)}</td>)}</tr>)}</tbody></table></div>;
 }
-export default function Dashboard({ actor, local }: { actor: string; local: boolean }) {
-  const [data, setData] = useState<Data | null>(null), [tab, setTab] = useState<Tab>("overview"), [query, setQuery] = useState("");
+export default function Dashboard({ actor, local, initialMarketing }: { actor: string; local: boolean; initialMarketing?: "current" | "new" }) {
+  const [data, setData] = useState<Data | null>(null), [tab, setTab] = useState<Tab>(initialMarketing ? "marketing" : "overview"), [query, setQuery] = useState("");
+  const [marketingSection, setMarketingSection] = useState<"current" | "new">(initialMarketing || "current");
   const [error, setError] = useState(""), [notice, setNotice] = useState(""), [busy, setBusy] = useState("");
   const [editor, setEditor] = useState<{ entity: string; record?: Row } | null>(null), [detail, setDetail] = useState<Row | null>(null);
   const [paymentView, setPaymentView] = useState("invoices"), [siteView, setSiteView] = useState("websites"), [mobile, setMobile] = useState(false);
@@ -64,13 +66,18 @@ export default function Dashboard({ actor, local }: { actor: string; local: bool
     setData(payload); setError("");
   }
   useEffect(() => {
-    const requested = new URLSearchParams(window.location.search).get("view");
-    if (navigation.some(item => item[0] === requested)) setTab(requested as Tab);
+    const sync = () => {
+      const selection = adminSelection(window.location.pathname, window.location.search);
+      if (navigation.some(item => item[0] === selection.tab)) setTab(selection.tab as Tab);
+      setMarketingSection(selection.marketing as "current" | "new");
+    };
+    sync(); window.addEventListener("popstate", sync);
     load().catch(e => setError(e.message));
+    return () => window.removeEventListener("popstate", sync);
   }, []);
   useEffect(() => { const timer = setInterval(() => load().catch(e => setError(e.message)), 60000); return () => clearInterval(timer); }, []);
   useEffect(() => { if (!notice) return; const timer = setTimeout(() => setNotice(""), 6000); return () => clearTimeout(timer); }, [notice]);
-  function navigate(value: Tab) { setTab(value); setQuery(""); setMobile(false); history.replaceState(null, "", `?view=${value}`); }
+  function navigate(value: Tab) { setTab(value); setQuery(""); setMobile(false); history.replaceState(null, "", adminUrl(value, marketingSection)); }
   async function action(path: string, body: Row = {}) {
     const response = await fetch(`/api/${path}`, { method: "POST", headers: { "Content-Type": "application/json", "x-platform-request": "admin" }, body: JSON.stringify(body) });
     const result = await response.json();
@@ -196,7 +203,7 @@ export default function Dashboard({ actor, local }: { actor: string; local: bool
             { title: "Task", cell: row => <><strong>{row.title}</strong><span className="subline">{row.notes.slice(0,90)}</span></> }, { title: "Client / website", cell: row => <>{clientName(row.client_id)}<span className="subline">{row.site_id ? siteName(row.site_id) : ""}</span></> }, { title: "Due", cell: row => <span className={row.due_date && row.due_date < today && !["done","cancelled"].includes(row.status) ? "overdue-text" : ""}>{date(row.due_date)}</span> }, { title: "Priority", cell: row => <Badge value={row.priority} /> }, { title: "Status", cell: row => <Badge value={row.status} /> }, { title: "", cell: row => edit("tasks",row) }
           ]} empty={<Empty title="Start with the next action" text="Keep client requests, website maintenance and follow-ups here." action={add("tasks")} />} /></Panel>}
           {tab === "communications" && <Communications people={data.communications} clients={data.clients} query={query} today={today} timezone={timezone} followUpsDue={data.summary.followUpsDue} post={action} reload={load} onEdit={record => setEditor({entity:"communications",record})} onAdd={() => setEditor({entity:"communications"})} />}
-          {tab === "marketing" && <Marketing today={today} />}
+          {tab === "marketing" && <MarketingHub today={today} section={marketingSection} navigate={section => { setMarketingSection(section); history.pushState(null, "", adminUrl("marketing", section)); }} />}
           {tab === "settings" && <div className="settings-grid"><Panel title="Business details" subtitle="Defaults for your workspace." action={edit("settings",business)}><dl className="details-list"><div><dt>Business name</dt><dd>{business.name}</dd></div><div><dt>Email</dt><dd>{business.email || "Add business email"}</dd></div><div><dt>Based in</dt><dd>{business.country || "North Macedonia"}</dd></div><div><dt>Default currency</dt><dd>{business.currency.toUpperCase()}</dd></div><div><dt>Timezone</dt><dd>{business.timezone}</dd></div></dl></Panel>
             <Panel title="Storage & access" subtitle="Where your records live."><dl className="details-list"><div><dt>Storage</dt><dd>{data.connections.storage === "local" ? "SQLite on this computer" : "Cloudflare D1"}</dd></div><div><dt>Owner access</dt><dd>{local ? "Loopback development only" : "Cloudflare Access"}</dd></div><div><dt>Account</dt><dd>{local ? "Local owner" : actor}</dd></div><div><dt>Backup</dt><dd>Export records or run npm run backup</dd></div></dl></Panel>
             <Panel title="Maintenance payment tracking" subtitle="Records for linked recurring maintenance subscriptions."><dl className="details-list"><div><dt>Connection</dt><dd><Badge value={data.connections.stripe ? "configured" : "not-connected"} /></dd></div><div><dt>Mode</dt><dd>{data.connections.stripeMode.toUpperCase()}</dd></div><div><dt>Webhook secret</dt><dd>{data.connections.webhook ? "Configured" : "Not configured"}</dd></div></dl><div className="panel-foot">Use STRIPE-SETUP.md in your main folder to add keys. Link each maintenance subscription under Payments &gt; Services.</div></Panel>
