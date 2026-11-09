@@ -1,6 +1,6 @@
 # Website Products: project context for agents
 
-Last updated: 2 November 2026. Read this first, then open only the files relevant
+Last updated: 9 November 2026. Read this first, then open only the files relevant
 to the task. Keep this file current when architecture, features or setup change.
 Read any nested `AGENTS.md` before editing its project.
 
@@ -345,6 +345,47 @@ whether an integration is connected. No Payoneer integration is implemented.
 
 ## Website health and project boundaries
 
+- Breeze CMS now uses one-use email codes for nikodola@gmail.com,
+  breezehc@gmail.com and ranahbeard@gmail.com only, sent from
+  verification@nikodola.com through Resend. Passwords/Basic auth and old sessions
+  are retired. Emails use the published admin-verification-code template with a
+  String CODE variable; keep its expiry wording at ten minutes. Optional
+  RESEND_LOGIN_TEMPLATE_ID overrides the template ID/alias. Next needs
+  RESEND_API_KEY and a per-environment CMS_AUTH_SECRET;
+  see `breeze-web/docs/CMS-EMAIL-LOGIN.md`. Codes are browser-bound, expire in ten
+  minutes, and use persistent five-failure/one-hour source and browser-binding
+  lockouts plus resend/send budgets. Another browser cannot lock the entire inbox.
+  Approved/unknown requests share generic responses, reservation/cooldown behavior
+  and Next after() delivery; only approved addresses receive email.
+  Remembered-browser cookies are opaque, HttpOnly, SameSite=Strict and Secure/
+  __Host- on HTTPS. D1 checks every authorization, expires sessions after 30 idle
+  days or 90 total days, and revokes them before logout succeeds. Closing the
+  browser preserves access; explicit sign-out or clearing cookies requires a new
+  code. No MAC addresses or fingerprints are used. Old sessions require one fresh
+  sign-in after this release. Existing sessions consume no code attempts; session
+  database outages fail closed. Migrations 0007/0008/0009 are applied locally.
+  Hosted rollout requires migrations and
+  the updated Worker before Next; deployment and real email delivery are pending.
+
+  Independent review on 9 November reproduced logout session replay, unbound
+  requests locking another inbox, and allowlist enumeration via resend responses.
+  These three issues are now fixed locally with 51 focused security/workflow tests,
+  a compiled HTTP proof, TypeScript, lint and production build passing. See
+  `breeze-web/docs/CMS-EMAIL-LOGIN-SECURITY-REVIEW.md` for historical evidence and
+  remediation. Dependency advisories remain a separate update task; no deployment
+  was performed.
+
+- Breeze's CMS mobile navigation is a full-screen native dialog at 900px and
+  below. It opens from the right, scrolls, and keeps its close button in a sticky
+  top-right heading aligned with the hamburger. Reduced motion disables its
+  entrance animation. Styling is in `breeze-web/src/featured/admin-test/shell.module.css`.
+- **Mandatory CMS text rule:** A single heading or sentence must have one editor
+  field. When its design uses multiple text colors or emphasis, use the shared
+  rich text editor with the website's approved color controls. Never split one
+  heading into separate inputs for lines, words, highlighted text or colors.
+  Authors select and color text and insert line breaks inside that same field.
+  Preserve existing text/formatting when converting older content. Apply this
+  rule to every website and future CMS change in this workspace.
 - Monitoring requires both an enabled website record and its exact hostname in
   `MONITOR_ALLOWED_HOSTS`. Initial Breeze monitoring is disabled.
 - CMS checks use a separate read-only `CMS_MONITOR_TOKEN`, never the CMS write
