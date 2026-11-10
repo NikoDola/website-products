@@ -290,7 +290,7 @@ separate monitoring token is configured and must be deployed before use.
 
 1. Generate a new random token of at least 32 characters. Keep it separate from
    `CMS_WRITE_TOKEN`; the code rejects reusing the write token.
-2. From `breeze-web/workers/cms`, set the live monitoring secret:
+2. From `projects/breeze-web/workers/cms`, set the live monitoring secret:
 
 ```powershell
 npx wrangler secret put CMS_MONITOR_TOKEN --config wrangler.live.jsonc
@@ -451,12 +451,15 @@ monitoring disabled; update that URL after deployment.
 
 ```powershell
 npm run site:new -- --id client-two --name "Client Two" --register
-npm --prefix client-two-web install
-npm --prefix client-two-web run dev
+npm --prefix projects/client-two-web install
+npm --prefix projects/client-two-web run dev
 ```
 
-The script refuses existing folders, validates IDs, reserves ports 3000/3001,
-and selects a free port based on site manifests. Each new site has its own CSS,
+The script creates `projects/<id>-web/`, refuses existing folders, validates IDs,
+reserves ports 3000/3001, and selects a free port from manifests inside `projects/`.
+The root repository ignores these independent client folders.
+Use `npm run dev:breeze` or `npm run dev:extreme` for the existing client projects.
+Each new site has its own CSS,
 content, app, public assets and non-secret `site.config.json`.
 
 The clean starter uses file content. It includes no Breeze customer content,
@@ -508,7 +511,7 @@ build. After installing Worker dependencies, also run:
 ```powershell
 npm run test:cloud
 npm --prefix workers/api run build
-npm --prefix breeze-web run cms:check
+npm --prefix projects/breeze-web run cms:check
 ```
 
 Implementation verification: admin unit tests, local D1 integration, Worker

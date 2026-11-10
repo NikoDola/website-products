@@ -1,5 +1,31 @@
 # Implementation verification
 
+## 10 November 2026 - client projects grouped under projects/
+
+- Moved the complete Breeze and Extreme Bike Team directories into
+  `projects/breeze-web/` and `projects/extreme-bike-team/`. Verified 542 captured
+  source/configuration/data files plus Git heads, configuration and worktree
+  status before editing paths. Existing Breeze CMS security work was preserved.
+- Updated root launch commands, project manifests, documentation, the fresh
+  Breeze seed path and the new-site generator. New projects use `projects/<id>-web/`;
+  the next available manifest port in this workspace is 3003. The parent Git
+  repository ignores project subfolders. No GitHub remote or Vercel root changed.
+- Saved a consistent local platform database backup under `backups/`, then
+  updated only Breeze's project path using the existing versioned/audited save
+  function. Other site fields and business data were retained.
+- Root tests: 79 passed, including isolated creation/port/overwrite checks.
+  Extreme Bike Team tests: all 6 passed. All three TypeScript checks passed.
+  Both client production builds passed from the new folders. Breeze's build
+  used command-local CMS enable flags set to false, as in the earlier baseline;
+  its font fetch required network access. Environment files were preserved.
+- The root type check exposed a malformed generated development route-types
+  file. Kept the old generated types in ignored `tmp/`, regenerated with
+  `next typegen`, and confirmed the root type check passed.
+- Restored the owner's Windows ownership on the moved project/Git directories
+  and verified ordinary Git status works in both. No application servers were
+  started, no browser inspection was performed, and no changes were pushed or deployed.
+
+
 ## 2 November 2026 - Gmail callback diagnostics and browser binding
 
 - Replaced the generic callback banner with fixed, safe failure categories and

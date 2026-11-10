@@ -8,7 +8,7 @@ export async function seed(db) {
   await db.batch([
     stmt("INSERT OR IGNORE INTO settings(id,currency,timezone,country,updated_at) VALUES('business','usd','Europe/Skopje','North Macedonia',?)", at),
     stmt("INSERT OR IGNORE INTO clients(id, name, notes, created_at, updated_at) VALUES('breeze-client', 'Breeze Heating & Cooling', 'First website. Confirm contact, service and billing details before entering them.', ?, ?)", at, at),
-    stmt("INSERT OR IGNORE INTO sites(id, client_id, name, public_url, cms_url, project_path, cms_status_url, state, expected_text, created_at, updated_at) VALUES('breeze', 'breeze-client', 'Breeze Heating & Cooling', 'https://breeze-full.vercel.app/', 'https://breeze-full.vercel.app/admin', 'breeze-web', 'https://breeze-live-api.nikodola.workers.dev/api/monitor/status', 'live', 'Breeze', ?, ?)", at, at)
+    stmt("INSERT OR IGNORE INTO sites(id, client_id, name, public_url, cms_url, project_path, cms_status_url, state, expected_text, created_at, updated_at) VALUES('breeze', 'breeze-client', 'Breeze Heating & Cooling', 'https://breeze-full.vercel.app/', 'https://breeze-full.vercel.app/admin', 'projects/breeze-web', 'https://breeze-live-api.nikodola.workers.dev/api/monitor/status', 'live', 'Breeze', ?, ?)", at, at)
   ]);
 }
 export async function audit(db, actor, action, entity, id, summary) {

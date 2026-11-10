@@ -1,5 +1,5 @@
-# Client website has its own repository and deployment.
-/breeze-web/
+# Client folders contain independent repositories and deployments.
+/projects/*/
 
 **/node_modules/
 **/.next/

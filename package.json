@@ -24,7 +24,8 @@
     "db:export": "node --env-file-if-exists=.env.local scripts/platform/export.mjs",
     "db:push": "node --env-file-if-exists=.env.local scripts/platform/push.mjs",
     "db:import": "node scripts/platform/import.mjs",
-    "dev:breeze": "npm --prefix breeze-web run dev",
+    "dev:breeze": "npm --prefix projects/breeze-web run dev",
+    "dev:extreme": "npm --prefix projects/extreme-bike-team run dev",
     "dev:home": "npm run dev",
     "build:home": "npm run build",
     "site:new": "node scripts/new-site.mjs"

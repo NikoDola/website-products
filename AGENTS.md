@@ -1,6 +1,6 @@
 # Website Products: project context for agents
 
-Last updated: 9 November 2026. Read this first, then open only the files relevant
+Last updated: 10 November 2026. Read this first, then open only the files relevant
 to the task. Keep this file current when architecture, features or setup change.
 Read any nested `AGENTS.md` before editing its project.
 
@@ -8,9 +8,16 @@ Read any nested `AGENTS.md` before editing its project.
 
 The owner runs a website development and maintenance business based in North
 Macedonia. This root workspace is the business hub. Each client website keeps its
-own project folder, content, styles, CMS and deployment. `breeze-web/` is the first
+own project folder, content, styles, CMS and deployment. `projects/breeze-web/` is the first
 client project; the shared Next.js app now runs from this workspace root. Dashboard
 source is in `src/admin/` and public website source is in `src/website/`.
+`projects/extreme-bike-team/` is a separate Next.js 16 / React 19 / TypeScript starter on
+port 3002 with its own Git repository, ignored by the root repository. It follows
+Breeze's folder structure and reuses its rich text editor in a minimal local-only
+draft/preview/publish CMS. Its `.data/cms.sqlite` is independent of Breeze and the
+business dashboard. Production editing is disabled; hosted email-code login,
+storage and deployment remain unconfigured. No business records were created.
+Read its own `AGENTS.md` and `docs/WEBSITE.md` before changing it.
 The owner's public one-page
 studio website uses the working brand **enigma** and the approved public email
 `nikodola@gmail.com`. It is local-only for now, served by the existing Next.js app
@@ -204,11 +211,13 @@ dates appear in the dashboard; the app does not send reminder emails.
 | `workers/api/migrations/` | Shared SQL schema; apply new migrations to hosted D1 before using new features |
 | `workers/api/wrangler.jsonc` | Worker configuration, D1 binding and schedules |
 | `tests/` | Shared logic tests and D1 integration checks |
-| `breeze-web/` | Independent client website and its own CMS; development port 3000 |
-| `breeze-web/site.config.json` | Nonsecret project manifest |
-| `breeze-web/workers/cms/src/monitor.ts` | Optional, separately authenticated, read-only CMS status endpoint |
+| `projects/` | Independent client repositories; future sites are created here |
+| `projects/breeze-web/` | Independent client website and its own CMS; development port 3000 |
+| `projects/extreme-bike-team/` | Independent ignored Next.js starter and local content editor; development port 3002 |
+| `projects/breeze-web/site.config.json` | Nonsecret project manifest |
+| `projects/breeze-web/workers/cms/src/monitor.ts` | Optional, separately authenticated, read-only CMS status endpoint |
 | `templates/website-starter/` | Sanitized starter for another client website |
-| `scripts/new-site.mjs` | Creates a project from the starter |
+| `scripts/new-site.mjs` | Creates a project under projects/ and reserves a free manifest port |
 | `scripts/import-marketing-prospects.py` | Reviewed PyMuPDF import with counts and original-tracker cross-checks |
 | `docs/SETUP.md` | Detailed configuration, hosting, billing, backups and onboarding instructions |
 | `STRIPE-SETUP.md` | Checked Stripe key lifecycle, exact setup steps and direct Payment Link tracking gap |
@@ -352,7 +361,7 @@ whether an integration is connected. No Payoneer integration is implemented.
   String CODE variable; keep its expiry wording at ten minutes. Optional
   RESEND_LOGIN_TEMPLATE_ID overrides the template ID/alias. Next needs
   RESEND_API_KEY and a per-environment CMS_AUTH_SECRET;
-  see `breeze-web/docs/CMS-EMAIL-LOGIN.md`. Codes are browser-bound, expire in ten
+  see `projects/breeze-web/docs/CMS-EMAIL-LOGIN.md`. Codes are browser-bound, expire in ten
   minutes, and use persistent five-failure/one-hour source and browser-binding
   lockouts plus resend/send budgets. Another browser cannot lock the entire inbox.
   Approved/unknown requests share generic responses, reservation/cooldown behavior
@@ -371,14 +380,14 @@ whether an integration is connected. No Payoneer integration is implemented.
   requests locking another inbox, and allowlist enumeration via resend responses.
   These three issues are now fixed locally with 51 focused security/workflow tests,
   a compiled HTTP proof, TypeScript, lint and production build passing. See
-  `breeze-web/docs/CMS-EMAIL-LOGIN-SECURITY-REVIEW.md` for historical evidence and
+  `projects/breeze-web/docs/CMS-EMAIL-LOGIN-SECURITY-REVIEW.md` for historical evidence and
   remediation. Dependency advisories remain a separate update task; no deployment
   was performed.
 
 - Breeze's CMS mobile navigation is a full-screen native dialog at 900px and
   below. It opens from the right, scrolls, and keeps its close button in a sticky
   top-right heading aligned with the hamburger. Reduced motion disables its
-  entrance animation. Styling is in `breeze-web/src/featured/admin-test/shell.module.css`.
+  entrance animation. Styling is in `projects/breeze-web/src/featured/admin-test/shell.module.css`.
 - **Mandatory CMS text rule:** A single heading or sentence must have one editor
   field. When its design uses multiple text colors or emphasis, use the shared
   rich text editor with the website's approved color controls. Never split one
@@ -393,10 +402,10 @@ whether an integration is connected. No Payoneer integration is implemented.
 - Two failed checks open an incident; recovery resolves it. Hosted monitoring
   runs every five minutes. Website availability never changes automatically
   because a client payment fails.
-- The root now has a Git repository; `breeze-web/` retains its independent one.
-  Root `.gitignore` explicitly excludes `/breeze-web/`. Recheck repository state
+- The root now has a Git repository; `projects/breeze-web/` retains its independent one.
+  Root `.gitignore` excludes client subfolders with `/projects/*/`. Recheck repository state
   before Git operations and do not alter global Git configuration.
-- Read `breeze-web/AGENTS.md` and its referenced project docs before changing that
+- Read `projects/breeze-web/AGENTS.md` and its referenced project docs before changing that
   website. Read `src/AGENTS.md` and relevant installed Next.js docs before
   framework changes; do not assume familiar Next.js behavior matches this version.
 
@@ -406,7 +415,8 @@ Run commands from this root unless stated otherwise:
 
 ```powershell
 npm run dev                         # Admin at http://127.0.0.1:3001/admin
-npm run dev:breeze                  # Separate client website on port 3000
+npm run dev:breeze                  # projects/breeze-web on port 3000
+npm run dev:extreme                 # projects/extreme-bike-team on port 3002
 npm run dev:home                    # Same Next.js server: enigma at localhost:3001/home
 npm run test:home                   # Isolated home-site tests
 npm run build:home                  # Build the Next.js app including enigma
