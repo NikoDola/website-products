@@ -108,6 +108,12 @@ and is not stored with enquiries. These settings are independent of admin auth.
 The form posts to the Next.js route `/home/contact` and saves enquiries to
 `admin/.data/home-inquiries.sqlite`, separate from the business database.
 It stores contact details, message, service, language and submission timestamp.
+An optional bilingual referral-code field is prefilled by Marketing's QR links.
+Active codes resolve privately on the server and save the referring partner's
+ID/name/code snapshot with the enquiry. Those enquiries appear in the private
+Referral Program and inbox CLI. Language changes preserve the current URL code.
+No commission is created until the owner records a qualifying payment. See
+[`docs/REFERRALS.md`](../docs/REFERRALS.md) before printing or distributing QR flyers.
 There is no reply-consent checkbox. The legacy `consent_at` storage column is
 preserved for earlier inquiries and left empty on new submissions.
 Origin validation, bounded bodies, a honeypot and rate limits protect the endpoint.

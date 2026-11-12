@@ -1,7 +1,7 @@
 import { owner } from "@/admin/server/auth";
 import Dashboard from "./Dashboard";
 
-export default async function WorkspacePage({ marketing }: { marketing?: "current" | "new" }) {
+export default async function WorkspacePage({ marketing }: { marketing?: "current" | "new" | "referrals" }) {
   try {
     const actor = await owner();
     return <Dashboard actor={actor.email} local={actor.local} initialMarketing={marketing} />;

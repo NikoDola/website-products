@@ -10,7 +10,7 @@ else {
     if (process.argv.includes('--json')) console.log(JSON.stringify(rows, null, 2));
     else {
       console.log(`${rows.length} enquiries in the private website inbox.\n`);
-      for (const row of rows) console.log(`${row.created_at} | ${row.name} <${row.email}>\n${row.service} (${row.locale})\n${row.message}\n`);
+      for (const row of rows) console.log(`${row.created_at} | ${row.name} <${row.email}>\n${row.service} (${row.locale})${row.referral_code ? `\nReferral: ${row.referral_name} | ${row.referral_code}` : ''}\n${row.message}\n`);
     }
   } finally { inbox.close(); }
 }

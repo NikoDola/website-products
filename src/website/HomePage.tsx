@@ -6,18 +6,20 @@ import { Arrow, Pin, ServiceIcon } from "./Icons";
 import { HomeShell, HomeHeader, HomeMap, HomeContactForm, ServiceLink } from "./HomeInteractions";
 import type { HomeLocale } from "./types";
 import { PortfolioGallery, PortfolioReviews } from "./PortfolioSection";
+import { referralCode, validReferralCode } from '../shared/referrals.mjs';
 
 function Lines({ children }: { children: string }) {
   return children.split("\n").map((line, index) => <Fragment key={index}>{index > 0 && <br />}{line}</Fragment>);
 }
 
-export default function HomePage({ locale, sent = false, error }: { locale: HomeLocale; sent?: boolean; error?: string }) {
+export default function HomePage({ locale, sent = false, error, referral: rawReferral }: { locale: HomeLocale; sent?: boolean; error?: string; referral?: string }) {
   const t = content[locale];
+  const code = referralCode(rawReferral), referral = validReferralCode(code) ? code : '';
   // The map marks the city; no exact business address has been supplied.
   const schema = { "@context": "https://schema.org", "@type": "ProfessionalService", name: site.name, description: t.description, email: site.email, address: { "@type": "PostalAddress", addressLocality: "Bitola", addressCountry: "MK" }, areaServed: ["North Macedonia", "Worldwide"], knowsLanguage: ["mk", "en"] };
   return <HomeShell locale={locale}>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }} />
-    <a className="skip-link" href="#home-main">{t.skip}</a><HomeHeader t={t} locale={locale} />
+    <a className="skip-link" href="#home-main">{t.skip}</a><HomeHeader t={t} locale={locale} referral={referral} />
     <main id="home-main">
       <section className="hero container" aria-labelledby="hero-title">
         <div className="hero-copy"><h1 id="hero-title">{t.hero[0]}<br />{t.hero[1]}<br /><span className="serif">{t.hero[2]}</span></h1><p className="hero-intro">{t.intro}</p><div className="hero-actions"><a className="button" href="#contact">{t.start} <Arrow /></a><a className="text-link" href="#work">{t.explore}<span aria-hidden="true">↓</span></a></div><div className="hero-location"><Pin /><div>{t.location}<small>{t.worldwide}</small></div></div></div>
@@ -41,7 +43,7 @@ export default function HomePage({ locale, sent = false, error }: { locale: Home
         <div className="faq-heading"><h2 id="faq-title">{t.faqTitle}</h2><p>{t.faqIntro}</p></div>
         <div className="faq-list">{t.faqs.map(([question, answer]) => <details key={question}><summary>{question}<span className="faq-toggle" aria-hidden="true" /></summary><p>{answer}</p></details>)}</div>
       </section>
-      <section className="contact-section" id="contact"><div className="container contact-grid"><div className="contact-copy"><h2><Lines>{t.contactTitle}</Lines></h2><p>{t.contactText}</p><div className="contact-flower" aria-hidden="true">✳</div><p className="contact-note">{t.contactNote}</p><a className="text-link" href={`mailto:${site.email}`}>{t.emailLink} <Arrow /></a></div><HomeContactForm t={t} locale={locale} sent={sent} initialError={error} /></div></section>
+      <section className="contact-section" id="contact"><div className="container contact-grid"><div className="contact-copy"><h2><Lines>{t.contactTitle}</Lines></h2><p>{t.contactText}</p><div className="contact-flower" aria-hidden="true">✳</div><p className="contact-note">{t.contactNote}</p><a className="text-link" href={`mailto:${site.email}`}>{t.emailLink} <Arrow /></a></div><HomeContactForm t={t} locale={locale} sent={sent} initialError={error} referral={referral} /></div></section>
     </main>
     <footer className="container site-footer"><div><a className="footer-name" href="#top">{site.name}<span>.</span></a><p>{t.footerTagline}</p></div><div className="footer-end"><p>© {new Date().getFullYear()} {site.name}. {t.rights}</p><a href="#top">{t.backTop} ↑</a></div></footer>
   </HomeShell>;

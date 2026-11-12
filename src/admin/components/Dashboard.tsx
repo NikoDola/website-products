@@ -46,9 +46,9 @@ function Table({ columns, rows, empty }: { columns: { title: string; cell: (row:
   if (!rows.length) return empty || <Empty title="Nothing here yet" text="Add your first record to get started." />;
   return <div className="table-scroll"><table><thead><tr>{columns.map(col => <th key={col.title} scope="col">{col.title}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.id}>{columns.map(col => <td key={col.title}>{col.cell(row)}</td>)}</tr>)}</tbody></table></div>;
 }
-export default function Dashboard({ actor, local, initialMarketing }: { actor: string; local: boolean; initialMarketing?: "current" | "new" }) {
+export default function Dashboard({ actor, local, initialMarketing }: { actor: string; local: boolean; initialMarketing?: "current" | "new" | "referrals" }) {
   const [data, setData] = useState<Data | null>(null), [tab, setTab] = useState<Tab>(initialMarketing ? "marketing" : "overview"), [query, setQuery] = useState("");
-  const [marketingSection, setMarketingSection] = useState<"current" | "new">(initialMarketing || "current");
+  const [marketingSection, setMarketingSection] = useState<"current" | "new" | "referrals">(initialMarketing || "current");
   const [error, setError] = useState(""), [notice, setNotice] = useState(""), [busy, setBusy] = useState("");
   const [editor, setEditor] = useState<{ entity: string; record?: Row } | null>(null), [detail, setDetail] = useState<Row | null>(null);
   const [paymentView, setPaymentView] = useState("invoices"), [siteView, setSiteView] = useState("websites"), [mobile, setMobile] = useState(false);
@@ -69,7 +69,7 @@ export default function Dashboard({ actor, local, initialMarketing }: { actor: s
     const sync = () => {
       const selection = adminSelection(window.location.pathname, window.location.search);
       if (navigation.some(item => item[0] === selection.tab)) setTab(selection.tab as Tab);
-      setMarketingSection(selection.marketing as "current" | "new");
+      setMarketingSection(selection.marketing as "current" | "new" | "referrals");
     };
     sync(); window.addEventListener("popstate", sync);
     load().catch(e => setError(e.message));

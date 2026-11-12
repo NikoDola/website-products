@@ -6,6 +6,7 @@ import { site } from "./site.config.mjs";
 import { serviceIds } from "./content.mjs";
 import type { HomeCopy, HomeLocale } from "./types";
 import styles from "./home.module.css";
+import { referralCode, validReferralCode } from '../shared/referrals.mjs';
 
 export function HomeShell({ locale, children }: { locale: HomeLocale; children: ReactNode }) {
   const [enhanced, setEnhanced] = useState(false);
@@ -71,22 +72,23 @@ export function HomeShell({ locale, children }: { locale: HomeLocale; children: 
   return <div id="top" className={styles.site} lang={locale} data-enhanced={enhanced} onClick={scrollToSection}>{children}</div>;
 }
 
-export function HomeHeader({ t, locale }: { t: HomeCopy; locale: HomeLocale }) {
+export function HomeHeader({ t, locale, referral = '' }: { t: HomeCopy; locale: HomeLocale; referral?: string }) {
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
   const links = ["services", "work", "about", "contact"];
   function language(event: MouseEvent<HTMLAnchorElement>, next: HomeLocale) {
     document.cookie = `site_language=${next}; Max-Age=31536000; Path=/home; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
-    event.currentTarget.href = `/home/${next}${location.hash}`;
+    const code = referralCode(new URLSearchParams(location.search).get('ref'));
+    event.currentTarget.href = `/home/${next}${validReferralCode(code) ? `?ref=${encodeURIComponent(code)}` : ''}${location.hash}`;
   }
   return <header className="site-header"><div className="container header-inner" onKeyDown={(event) => { if (event.key === "Escape" && open) { setOpen(false); button.current?.focus(); } }}>
-    <a className="wordmark" href={`/home/${locale}`} aria-label={site.name}><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>{site.name}<span className="brand-dot">.</span></span></a>
+    <a className="wordmark" href={`/home/${locale}${referral ? `?ref=${encodeURIComponent(referral)}` : ''}`} aria-label={site.name}><span className="brand-mark" aria-hidden="true"><i /><i /><i /></span><span>{site.name}<span className="brand-dot">.</span></span></a>
     <nav id="home-navigation" className={open ? "is-open" : undefined} aria-label={locale === "mk" ? "Главна навигација" : "Main navigation"}>
       {links.map((id, i) => <a key={id} href={`#${id}`} onClick={() => setOpen(false)}>{t.nav[i]}</a>)}
     </nav>
     <div className="header-actions"><div className="language-switch" aria-label={locale === "mk" ? "Јазик" : "Language"}>
-      <a href="/home/mk" lang="mk" aria-current={locale === "mk" ? "true" : undefined} onClick={(event) => language(event, "mk")}>МК</a><span aria-hidden="true">/</span>
-      <a href="/home/en" lang="en" aria-current={locale === "en" ? "true" : undefined} onClick={(event) => language(event, "en")}>EN</a>
+      <a href={`/home/mk${referral ? `?ref=${encodeURIComponent(referral)}` : ''}`} lang="mk" aria-current={locale === "mk" ? "true" : undefined} onClick={(event) => language(event, "mk")}>МК</a><span aria-hidden="true">/</span>
+      <a href={`/home/en${referral ? `?ref=${encodeURIComponent(referral)}` : ''}`} lang="en" aria-current={locale === "en" ? "true" : undefined} onClick={(event) => language(event, "en")}>EN</a>
     </div><a className="button button-small header-cta" href="#contact">{t.talk} <Arrow /></a>
       <button ref={button} className="menu-toggle" aria-controls="home-navigation" aria-expanded={open} aria-label={open ? t.closeMenu : t.menu} onClick={() => setOpen(!open)}><span /><span /><span /></button>
     </div>
@@ -104,9 +106,10 @@ export function HomeMap({ t }: { t: HomeCopy }) {
   </div>;
 }
 
-export function HomeContactForm({ t, locale, sent, initialError }: { t: HomeCopy; locale: HomeLocale; sent: boolean; initialError?: string }) {
+export function HomeContactForm({ t, locale, sent, initialError, referral = '' }: { t: HomeCopy; locale: HomeLocale; sent: boolean; initialError?: string; referral?: string }) {
   const [busy, setBusy] = useState(false);
-  const [feedback, setFeedback] = useState(sent ? t.success : initialError === "rate" ? t.rate : initialError === "invalid" ? t.invalid : initialError ? t.error : "");
+  const referralError = locale === 'mk' ? 'Кодот за препорака не е активен. Проверете го или оставете го полето празно.' : 'This referral code is not active. Check the code or leave the field empty.';
+  const [feedback, setFeedback] = useState(sent ? t.success : initialError === 'referral' ? referralError : initialError === "rate" ? t.rate : initialError === "invalid" ? t.invalid : initialError ? t.error : "");
   const [success, setSuccess] = useState(sent);
   const status = useRef<HTMLParagraphElement>(null);
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -118,7 +121,7 @@ export function HomeContactForm({ t, locale, sent, initialError }: { t: HomeCopy
     try {
       const response = await fetch("/home/contact", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(Object.fromEntries(new FormData(form))) });
       if (response.ok) { setFeedback(t.success); setSuccess(true); form.reset(); }
-      else setFeedback(response.status === 429 ? t.rate : response.status === 400 ? t.invalid : t.error);
+      else { const payload = await response.json().catch(() => ({})); setFeedback(response.status === 429 ? t.rate : payload.error === 'referral' ? referralError : response.status === 400 ? t.invalid : t.error); }
     } catch { setFeedback(t.error); }
     finally { setBusy(false); requestAnimationFrame(() => status.current?.focus()); }
   }
@@ -131,6 +134,7 @@ export function HomeContactForm({ t, locale, sent, initialError }: { t: HomeCopy
     </div>
     <label htmlFor="home-service">{t.service}<select id="home-service" name="service" defaultValue="" required><option value="">{t.servicePlaceholder}</option>{t.serviceOptions.map((name, i) => <option key={serviceIds[i]} value={serviceIds[i]}>{name}</option>)}</select></label>
     <label htmlFor="home-message">{t.message}<textarea id="home-message" name="message" rows={4} placeholder={t.messagePlaceholder} minLength={10} maxLength={5000} required /></label>
+    <label htmlFor="home-referral">{locale === 'mk' ? 'Код за препорака (незадолжително)' : 'Referral code (optional)'}<input id="home-referral" name="referral_code" defaultValue={referral} maxLength={16} pattern="[Rr][Ee][Ff]-[A-Fa-f0-9]{12}" autoComplete="off" spellCheck={false} placeholder="REF-…" /></label>
     <p className="privacy-note">{t.privacy}</p><button type="submit" className="button form-submit" disabled={busy}><span>{busy ? t.sending : t.send}</span><Arrow /></button>
     <p ref={status} className={`form-status${feedback ? success ? " success" : " error" : ""}`} role="status" aria-live="polite" tabIndex={-1}>{feedback}</p>
   </form>;

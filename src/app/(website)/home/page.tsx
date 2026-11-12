@@ -8,5 +8,5 @@ export const generateMetadata = () => homeMetadata();
 
 export default async function Page({ searchParams }: { searchParams: HomeSearch }) {
   const [locale, query] = await Promise.all([getHomeLocale(), searchParams]);
-  return <HomePage locale={locale} sent={query.sent === "1"} error={typeof query.error === "string" ? query.error : undefined} />;
+  return <HomePage locale={locale} sent={query.sent === "1"} error={typeof query.error === "string" ? query.error : undefined} referral={typeof query.ref === 'string' ? query.ref : undefined} />;
 }

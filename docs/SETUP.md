@@ -64,6 +64,13 @@ marketing lock before restarting. Never remove a lock while a save is running.
 
 ## 1. Start locally now
 
+**Referral Program:** Marketing also contains named referral partners, permanent
+codes, downloadable QR cards/flyers, attributed website enquiries and a manual
+commission ledger. See [REFERRALS.md](REFERRALS.md) for the workflow, separate
+private backup and required public website origin before printing. Hosted use
+needs persistent absolute `REFERRAL_DATA_PATH` and `HOME_INQUIRIES_DATA_PATH` on
+Node; this feature does not deploy the website or transfer commission payments.
+
 Use Node.js 22.16 or a newer Node 22 release. Open a terminal in
 `C:\Users\Dolov\Desktop\solid-code\website-products`.
 

@@ -1,6 +1,6 @@
 # Website Products: project context for agents
 
-Last updated: 10 November 2026. Read this first, then open only the files relevant
+Last updated: 12 November 2026. Read this first, then open only the files relevant
 to the task. Keep this file current when architecture, features or setup change.
 Read any nested `AGENTS.md` before editing its project.
 
@@ -60,9 +60,43 @@ JSON-backed historical prospect directory. Calls and Orders remain retired.
 The old marketing/call/order database tables remain in backups/exports and are
 not used by the new Marketing section. Marketing now has Current Clients at
 `/admin/marketing/current-clients` and New Clients at
-`/admin/marketing/new-clients`. `/admin/marketing/` and the legacy
+`/admin/marketing/new-clients`, plus Referral Program at
+`/admin/marketing/referral-program`. `/admin/marketing/` and the legacy
 `/admin?view=marketing` open Current Clients. That label denotes the existing
 historical Marketing directory; it never converts records into actual clients.
+
+Referral Program keeps named partners, permanent random `REF-` codes, per-person
+commission percentages and private payout instructions in the independent
+`admin/.data/referrals.sqlite`. It starts empty and uses owner authentication,
+origin checks, transactional writes, record versions and before/after audit history.
+Named QR cards and complete flyers download as locally generated SVGs; they contain
+only the partner name, code and website URL. They link to `/home?ref=CODE#contact`.
+The optional bilingual enquiry field is prefilled, survives language changes, and
+is resolved against an active partner on the server. The separate website inbox
+stores that partner's ID, name and code snapshot; forged browser partner IDs/names
+are ignored. Old inbox rows keep their content/consent and get empty referral fields.
+Referred enquiries appear privately in Referral Program. They create no commission
+until the owner records a confirmed qualifying payment with a unique reference.
+The owner selected commission on the first website payment only, with QR links
+opening the enigma enquiry form. The basis is fixed in the editor and enforced
+for new commissions on the server. Recording one requires explicit confirmation
+that this is the referred customer's first website payment; the confirmation is
+saved in audit history. Payment history is checked manually. Later instalments
+and maintenance earn no commission. Earlier basis labels remain readable in history.
+Rates/bases are copied into each commission; later partner edits do not recalculate
+existing amounts. Amounts use integer minor units; USD/EUR/GBP/MKD totals stay
+separate. Mark paid requires a payout reference and records a manual transfer only;
+owed commissions can be voided, preserving history. No automatic transfers, Stripe
+sync, client creation or changes to maintenance totals occur. Inactive partners
+retain their codes/history but cannot receive new referrals/commissions.
+Use the independent Referral Program JSON backup for records, audit and referred
+enquiries. It is not part of the platform export/backup. Hosted use requires
+persistent absolute `REFERRAL_DATA_PATH` and `HOME_INQUIRIES_DATA_PATH` on Node;
+Vercel and the existing D1 Worker do not persist referral storage. Configure the
+exact HTTPS `HOME_PUBLIC_ORIGIN` before distributing flyers. Local QR previews
+point to this computer and must be regenerated for the eventual public address.
+There are no scan analytics or cross-visit attribution cookies. No publication
+is authorized by this feature. See `docs/REFERRALS.md`.
 
 New Clients is an independent manual HVAC lead/outreach system. Its SQLite file
 is `admin/.data/outreach.sqlite`, separate from the historical Marketing JSON,
@@ -172,7 +206,14 @@ dates appear in the dashboard; the app does not send reminder emails.
 | `src/admin/components/Dashboard.tsx` | Main navigation, clients, sites, payments, services, tasks and settings UI |
 | `src/admin/components/Communications.tsx` | People, conversation timeline, manual email logging and follow-ups |
 | `src/admin/components/Marketing.tsx` | Historical prospects, campaign filters, contact editor and contest archive |
-| `src/admin/components/MarketingHub.tsx` | Current Clients / New Clients navigation inside the existing dashboard |
+| `src/admin/components/MarketingHub.tsx` | Current Clients / New Clients / Referral Program navigation inside the existing dashboard |
+| `src/admin/components/ReferralProgram.tsx` | Named referral partners, QR/flyer downloads, enquiries and manual commissions |
+| `src/admin/server/referral-store.mjs` | Independent private SQLite, permanent codes, versions, commission ledger and audit |
+| `src/admin/server/referral-assets.mjs` | Trusted website origin and locally generated printable QR/flyer SVGs |
+| `src/admin/server/referral-inquiries.mjs` | Private referred enquiries and partner ownership checks |
+| `src/shared/referrals.mjs` | Referral validation, links and exact commission arithmetic |
+| `src/app/api/referrals/route.ts` | Owner-only referral records, mutations, assets and JSON backup |
+| `docs/REFERRALS.md` | Referral workflow, commission basis, QR destination, storage and backup |
 | `src/admin/components/NewClients.tsx` | Gmail cards, manual composer, history and suppression controls |
 | `src/admin/components/LeadDirectory.tsx` | Full searchable Texas select, optional discovery and saved leads |
 | `src/admin/server/outreach-store.mjs` | Independent outreach SQLite, encrypted tokens, versions, quotas, dedupe and audit |

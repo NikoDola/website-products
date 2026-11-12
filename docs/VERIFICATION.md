@@ -1,5 +1,42 @@
 # Implementation verification
 
+## 12 November 2026 - Marketing referral program
+
+- Added **Marketing > Referral Program**, with named partners, permanent random
+  codes, editable per-person percentages, private payout instructions,
+  printable named QR SVG cards and complete flyer SVG downloads. Local links
+  show a warning; public distribution needs the configured HTTPS website origin.
+- Added independent empty-by-default referral SQLite storage, owner-only API,
+  mutation origin checks, record versions, transactional commission calculations,
+  duplicate payment/enquiry protection, manual paid/void transitions, currency
+  totals and complete before/after audit exports. No Stripe/payment operations or
+  client records are created, and maintenance totals remain independent.
+- Public enquiries accept optional codes in both languages. The server resolves
+  active partners and saves ID/name/code snapshots; browser-supplied partner IDs
+  and names cannot assign credit. Inbox migration preserves old messages/consent.
+  Referred enquiries are available privately in the new section and inbox CLI.
+- All **90 root tests**, standalone TypeScript check and production build passed.
+  Eleven new isolated referral tests cover precise arithmetic, versions,
+  persistence, duplicates, payout evidence, inactive/forged codes, private
+  attribution, legacy migration, hosting requirements and SVG content safety.
+- Generated both assets under ignored `tmp/referral-qa/`, rendered SVGs with
+  Sharp, inspected their name/code layouts, and decoded the raster QR symbols
+  with OpenCV to their exact expected referral URLs. XML parsing also passed.
+  PyMuPDF's SVG importer did not consistently preserve nested SVG/text styling;
+  QR geometry was flattened and the final visual check used Sharp.
+- A temporary production server on **3107** returned both translated forms with
+  the code prefilled and retained in language links. GET/POST on the referral API
+  refused unauthenticated production requests, with no-store/noindex responses.
+  The temporary server was stopped. No dashboard was opened or visually inspected,
+  no real referral/payment/customer data was added, existing local configuration
+  was preserved, and no deployment was performed.
+- After the owner confirmed the options, fixed the policy to **first website
+  payment only** and retained the enigma enquiry form as the QR destination.
+  New commissions require explicit first-payment confirmation, saved in audit
+  history; legacy partner basis values cannot change the policy for new entries.
+  After this update, all **91 root tests**, TypeScript and the production build
+  passed, including a new regression for the fixed basis and required confirmation.
+
 ## 10 November 2026 - client projects grouped under projects/
 
 - Moved the complete Breeze and Extreme Bike Team directories into

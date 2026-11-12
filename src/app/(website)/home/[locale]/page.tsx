@@ -15,5 +15,5 @@ export async function generateMetadata({ params }: Props) {
 }
 export default async function Page({ params, searchParams }: Props) {
   const [parameters, query] = await Promise.all([params, searchParams]);
-  return <HomePage locale={validLocale(parameters.locale)} sent={query.sent === "1"} error={typeof query.error === "string" ? query.error : undefined} />;
+  return <HomePage locale={validLocale(parameters.locale)} sent={query.sent === "1"} error={typeof query.error === "string" ? query.error : undefined} referral={typeof query.ref === 'string' ? query.ref : undefined} />;
 }
